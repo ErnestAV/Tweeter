@@ -18,6 +18,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Used by MainActivity to implement the "Feed", "Story", "Following", "Followers" tabs.
+ * DO NOT MODIFY THIS ONE
  */
 class SectionsPagerAdapter extends FragmentPagerAdapter {
 

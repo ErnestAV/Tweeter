@@ -12,6 +12,7 @@ import edu.byu.cs.tweeter.R;
 /**
  * The first activity that appears when the app is run.
  * Contains the "Login" and "Register" tabs
+ * DO NOT MODIFY THIS ONE
  */
 public class LoginActivity extends AppCompatActivity {
     @Override

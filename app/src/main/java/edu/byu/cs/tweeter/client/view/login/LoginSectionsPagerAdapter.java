@@ -13,6 +13,7 @@ import edu.byu.cs.tweeter.R;
 
 /**
  * Used by LoginActivity to implement the "login" and "register" tabs.
+ * DO NOT MODIFY THIS ONE
  */
 public class LoginSectionsPagerAdapter extends FragmentPagerAdapter {
     private static final String LOG_TAG = "LoginSectionsPagerAdapter";

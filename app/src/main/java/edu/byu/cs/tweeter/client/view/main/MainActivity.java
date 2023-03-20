@@ -33,24 +33,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.backgroundTask.FollowTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersCountTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetFollowersTask;
-import edu.byu.cs.tweeter.client.backgroundTask.GetFollowingCountTask;
-import edu.byu.cs.tweeter.client.backgroundTask.IsFollowerTask;
-import edu.byu.cs.tweeter.client.backgroundTask.LogoutTask;
-import edu.byu.cs.tweeter.client.backgroundTask.PostStatusTask;
-import edu.byu.cs.tweeter.client.backgroundTask.UnfollowTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.FollowTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFollowersCountTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFollowingCountTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.IsFollowerTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LogoutTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.PostStatusTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.UnfollowTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
+import edu.byu.cs.tweeter.client.presenter.GetMainPresenter;
 import edu.byu.cs.tweeter.client.view.login.LoginActivity;
 import edu.byu.cs.tweeter.client.view.login.StatusDialogFragment;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
- * The main activity for the application. Contains tabs for feed, story, following, and followers.
+ * The main activity for the application. Contains tabs for feed, story, following, and followers.x
  */
-public class MainActivity extends AppCompatActivity implements StatusDialogFragment.Observer {
+public class MainActivity extends AppCompatActivity implements StatusDialogFragment.Observer, GetMainPresenter.MainView {
 
     private static final String LOG_TAG = "MainActivity";
 
@@ -63,6 +63,11 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
     private TextView followerCount;
     private Button followButton;
 
+    // LOOK AT THIS IF IT BREAKS
+    protected GetMainPresenter.MainView getView() {
+        return this;
+    }
+    private GetMainPresenter presenter = new GetMainPresenter(getView());
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,10 +118,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
             followButton.setVisibility(View.GONE);
         } else {
             followButton.setVisibility(View.VISIBLE);
-            IsFollowerTask isFollowerTask = new IsFollowerTask(Cache.getInstance().getCurrUserAuthToken(),
-                    Cache.getInstance().getCurrUser(), selectedUser, new IsFollowerHandler());
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.execute(isFollowerTask);
+            presenter.isFollowerTask(Cache.getInstance().getCurrUser(), selectedUser);
         }
 
         followButton.setOnClickListener(new View.OnClickListener() {
@@ -125,12 +127,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
                 followButton.setEnabled(false);
 
                 if (followButton.getText().toString().equals(v.getContext().getString(R.string.following))) {
-                    UnfollowTask unfollowTask = new UnfollowTask(Cache.getInstance().getCurrUserAuthToken(),
-                            selectedUser, new UnfollowHandler());
-                    ExecutorService executor = Executors.newSingleThreadExecutor();
-                    executor.execute(unfollowTask);
-
-                    Toast.makeText(MainActivity.this, "Removing " + selectedUser.getName() + "...", Toast.LENGTH_LONG).show();
+                    presenter.unfollowTask(selectedUser);
                 } else {
                     FollowTask followTask = new FollowTask(Cache.getInstance().getCurrUserAuthToken(),
                             selectedUser, new FollowHandler());
@@ -153,13 +150,7 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.logoutMenu) {
-            logOutToast = Toast.makeText(this, "Logging Out...", Toast.LENGTH_LONG);
-            logOutToast.show();
-
-            LogoutTask logoutTask = new LogoutTask(Cache.getInstance().getCurrUserAuthToken(), new LogoutHandler());
-            ExecutorService executor = Executors.newSingleThreadExecutor();
-            executor.execute(logoutTask);
-
+            presenter.logoutTask();
             return true;
         } else {
             return super.onOptionsItemSelected(item);
@@ -283,27 +274,43 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
         }
     }
 
-    // LogoutHandler
+    @Override
+    public void displayFollowingButton() {
+        followButton.setText(R.string.following);
+        followButton.setBackgroundColor(getResources().getColor(R.color.white));
+        followButton.setTextColor(getResources().getColor(R.color.lightGray));
+    }
 
-    private class LogoutHandler extends Handler {
+    @Override
+    public void displayFollowButton() {
+        followButton.setText(R.string.follow);
+        followButton.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+    }
 
-        public LogoutHandler() {
-            super(Looper.getMainLooper());
-        }
+    @Override
+    public void displayMessage(String message) {
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_LONG).show();
+    }
 
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            boolean success = msg.getData().getBoolean(LogoutTask.SUCCESS_KEY);
-            if (success) {
-                logOutToast.cancel();
-                logoutUser();
-            } else if (msg.getData().containsKey(LogoutTask.MESSAGE_KEY)) {
-                String message = msg.getData().getString(LogoutTask.MESSAGE_KEY);
-                Toast.makeText(MainActivity.this, "Failed to logout: " + message, Toast.LENGTH_LONG).show();
-            } else if (msg.getData().containsKey(LogoutTask.EXCEPTION_KEY)) {
-                Exception ex = (Exception) msg.getData().getSerializable(LogoutTask.EXCEPTION_KEY);
-                Toast.makeText(MainActivity.this, "Failed to logout because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-            }
+    @Override
+    public void updateSelectedUserFollowingAndFollowersAndButton(boolean value) {
+        updateSelectedUserFollowingAndFollowers();
+        updateFollowButton(true);
+    }
+
+    @Override
+    public void enableFollowButton(boolean value) {
+        followButton.setEnabled(true);
+    }
+
+    @Override
+    public void toggleLogoutToast(boolean value) {
+        if (value) {
+            logOutToast = Toast.makeText(this, "Logging Out...", Toast.LENGTH_LONG);
+            logOutToast.show();
+        } else {
+            logOutToast.cancel();
+            logoutUser();
         }
     }
 
@@ -355,39 +362,6 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
         }
     }
 
-    // IsFollowerHandler
-
-    private class IsFollowerHandler extends Handler {
-
-        public IsFollowerHandler() {
-            super(Looper.getMainLooper());
-        }
-
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            boolean success = msg.getData().getBoolean(IsFollowerTask.SUCCESS_KEY);
-            if (success) {
-                boolean isFollower = msg.getData().getBoolean(IsFollowerTask.IS_FOLLOWER_KEY);
-
-                // If logged in user if a follower of the selected user, display the follow button as "following"
-                if (isFollower) {
-                    followButton.setText(R.string.following);
-                    followButton.setBackgroundColor(getResources().getColor(R.color.white));
-                    followButton.setTextColor(getResources().getColor(R.color.lightGray));
-                } else {
-                    followButton.setText(R.string.follow);
-                    followButton.setBackgroundColor(getResources().getColor(R.color.colorAccent));
-                }
-            } else if (msg.getData().containsKey(IsFollowerTask.MESSAGE_KEY)) {
-                String message = msg.getData().getString(IsFollowerTask.MESSAGE_KEY);
-                Toast.makeText(MainActivity.this, "Failed to determine following relationship: " + message, Toast.LENGTH_LONG).show();
-            } else if (msg.getData().containsKey(IsFollowerTask.EXCEPTION_KEY)) {
-                Exception ex = (Exception) msg.getData().getSerializable(IsFollowerTask.EXCEPTION_KEY);
-                Toast.makeText(MainActivity.this, "Failed to determine following relationship because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     // FollowHandler
 
     private class FollowHandler extends Handler {
@@ -408,32 +382,6 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
             } else if (msg.getData().containsKey(FollowTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(FollowTask.EXCEPTION_KEY);
                 Toast.makeText(MainActivity.this, "Failed to follow because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
-            }
-
-            followButton.setEnabled(true);
-        }
-    }
-
-    // UnfollowHandler
-
-    private class UnfollowHandler extends Handler {
-
-        public UnfollowHandler() {
-            super(Looper.getMainLooper());
-        }
-
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            boolean success = msg.getData().getBoolean(UnfollowTask.SUCCESS_KEY);
-            if (success) {
-                updateSelectedUserFollowingAndFollowers();
-                updateFollowButton(true);
-            } else if (msg.getData().containsKey(UnfollowTask.MESSAGE_KEY)) {
-                String message = msg.getData().getString(UnfollowTask.MESSAGE_KEY);
-                Toast.makeText(MainActivity.this, "Failed to unfollow: " + message, Toast.LENGTH_LONG).show();
-            } else if (msg.getData().containsKey(UnfollowTask.EXCEPTION_KEY)) {
-                Exception ex = (Exception) msg.getData().getSerializable(UnfollowTask.EXCEPTION_KEY);
-                Toast.makeText(MainActivity.this, "Failed to unfollow because of exception: " + ex.getMessage(), Toast.LENGTH_LONG).show();
             }
 
             followButton.setEnabled(true);
