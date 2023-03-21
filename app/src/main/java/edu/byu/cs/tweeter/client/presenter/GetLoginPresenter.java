@@ -45,6 +45,7 @@ public class GetLoginPresenter {
                 throw new IllegalArgumentException("Password cannot be empty.");
             }
             view.setErrorMessage(null);
+            view.toggleLoginToast(true);
             userService.loginTask(userAlias, userPassword, new LoginObserver());
         } catch (Exception e) {
             view.setErrorMessage(e.getMessage());
@@ -54,8 +55,8 @@ public class GetLoginPresenter {
     public class LoginObserver implements UserService.Observer {
 
         @Override
-        public void startActivity(User loggedInUser) {
-            view.startActivity(loggedInUser);
+        public void startActivity(User user) {
+            view.startActivity(user);
         }
 
         @Override
@@ -76,6 +77,11 @@ public class GetLoginPresenter {
         @Override
         public void displayException(Exception ex) {
             view.displayMessage("Failed to login because of exception: " + ex.getMessage());
+        }
+
+        @Override
+        public void toggleRegisterToast(boolean isActive) {
+
         }
     }
 }

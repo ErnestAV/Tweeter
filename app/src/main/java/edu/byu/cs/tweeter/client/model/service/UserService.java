@@ -13,15 +13,18 @@ import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LoginTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.RegisterTask;
 import edu.byu.cs.tweeter.client.presenter.GetLoginPresenter;
+import edu.byu.cs.tweeter.client.presenter.GetRegisterPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class UserService {
+
     public interface Observer {
 
-        void startActivity(User loggedInUser);
+        void startActivity(User user);
 
         void toggleLoginToast(boolean isActive);
 
@@ -30,6 +33,8 @@ public class UserService {
         void displayLoginError(String message);
 
         void displayException(Exception ex);
+
+        void toggleRegisterToast(boolean isActive);
     }
 
     public void loginTask(String userAlias, String userPassword, GetLoginPresenter.LoginObserver loginObserver) {
@@ -38,6 +43,14 @@ public class UserService {
                 new LoginHandler(loginObserver));
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(loginTask);
+    }
+
+    public void registerTask(String firstName, String lastName, String userAlias, String password, String imageBytesBase64, GetRegisterPresenter.RegisterObserver registerObserver) {
+        // Send register request.
+        RegisterTask registerTask = new RegisterTask(firstName, lastName, userAlias, password,
+                imageBytesBase64, new RegisterHandler(registerObserver));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(registerTask);
     }
 
     /**
@@ -70,6 +83,44 @@ public class UserService {
                 observer.displayLoginError(message);
             } else if (msg.getData().containsKey(LoginTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(LoginTask.EXCEPTION_KEY);
+                observer.displayException(ex);
+            }
+        }
+    }
+
+    // RegisterHandler
+
+    private class RegisterHandler extends Handler {
+
+        Observer observer;
+        public RegisterHandler(Observer observer) {
+            super(Looper.getMainLooper());
+            this.observer = observer;
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            boolean success = msg.getData().getBoolean(RegisterTask.SUCCESS_KEY);
+            if (success) {
+                User registeredUser = (User) msg.getData().getSerializable(RegisterTask.USER_KEY);
+                AuthToken authToken = (AuthToken) msg.getData().getSerializable(RegisterTask.AUTH_TOKEN_KEY);
+
+                // Cache user session information
+                Cache.getInstance().setCurrUser(registeredUser);
+                Cache.getInstance().setCurrUserAuthToken(authToken);
+
+                try {
+                    observer.startActivity(registeredUser);
+                    observer.toggleRegisterToast(false);
+                    observer.displayLoginSuccess(Cache.getInstance().getCurrUser().getName());
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            } else if (msg.getData().containsKey(RegisterTask.MESSAGE_KEY)) {
+                String message = msg.getData().getString(RegisterTask.MESSAGE_KEY);
+                observer.displayLoginError(message);
+            } else if (msg.getData().containsKey(RegisterTask.EXCEPTION_KEY)) {
+                Exception ex = (Exception) msg.getData().getSerializable(RegisterTask.EXCEPTION_KEY);
                 observer.displayException(ex);
             }
         }
