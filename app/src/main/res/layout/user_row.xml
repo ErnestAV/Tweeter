@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:context="edu.byu.cs.tweeter.client.view.main.following.FollowingFragment">
+    tools:context="edu.byu.cs.tweeter.client.loginView.main.following.FollowingFragment">
 
     <ImageView
         android:id="@+id/userImage"

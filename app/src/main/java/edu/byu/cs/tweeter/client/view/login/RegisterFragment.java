@@ -92,13 +92,7 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
             @Override
             public void onClick(View view) {
                 // Register and move to MainActivity.
-                try {
-                    validateRegistration();
-                    errorView.setText(null);
-                    presenter.registerTask(firstName.getText().toString(), lastName.getText().toString(), alias.getText().toString(), password.getText().toString(), imageToUpload);
-                } catch (Exception e) {
-                    errorView.setText(e.getMessage());
-                }
+                presenter.registerTask(firstName.getText().toString(), lastName.getText().toString(), alias.getText().toString(), password.getText().toString(), imageToUpload);
             }
         });
 
@@ -114,31 +108,6 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
             Uri selectedImage = data.getData();
             imageToUpload.setImageURI(selectedImage);
             imageUploaderButton.setText(R.string.afterUploadPicture);
-        }
-    }
-
-    public void validateRegistration() {
-        if (firstName.getText().length() == 0) {
-            throw new IllegalArgumentException("First Name cannot be empty.");
-        }
-        if (lastName.getText().length() == 0) {
-            throw new IllegalArgumentException("Last Name cannot be empty.");
-        }
-        if (alias.getText().length() == 0) {
-            throw new IllegalArgumentException("Alias cannot be empty.");
-        }
-        if (alias.getText().charAt(0) != '@') {
-            throw new IllegalArgumentException("Alias must begin with @.");
-        }
-        if (alias.getText().length() < 2) {
-            throw new IllegalArgumentException("Alias must contain 1 or more characters after the @.");
-        }
-        if (password.getText().length() == 0) {
-            throw new IllegalArgumentException("Password cannot be empty.");
-        }
-
-        if (imageToUpload.getDrawable() == null) {
-            throw new IllegalArgumentException("Profile image must be uploaded.");
         }
     }
 
@@ -162,5 +131,10 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
     @Override
     public void displayMessage(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void setErrorMessage(String message) {
+        errorView.setText(message);
     }
 }

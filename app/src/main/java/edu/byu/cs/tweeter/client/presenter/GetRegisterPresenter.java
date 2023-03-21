@@ -18,59 +18,84 @@ public class GetRegisterPresenter {
         void toggleRegisterToast(boolean isActive);
 
         void displayMessage(String message);
+
+        void setErrorMessage(String message);
     }
 
     private UserService userService;
-    private RegisterView view;
-    public GetRegisterPresenter(RegisterView view) {
-        this.view = view;
+    private RegisterView registerView;
+    public GetRegisterPresenter(RegisterView registerView) {
+        this.registerView = registerView;
         userService = new UserService();
     }
 
     public void registerTask(String firstName, String lastName, String userAlias, String password, ImageView imageToUpload) {
-        // Convert image to byte array.
-        Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        image.compress(Bitmap.CompressFormat.JPEG, 100, bos);
-        byte[] imageBytes = bos.toByteArray();
+        try {
+            if (firstName.length() == 0) {
+                throw new IllegalArgumentException("First Name cannot be empty.");
+            }
+            if (lastName.length() == 0) {
+                throw new IllegalArgumentException("Last Name cannot be empty.");
+            }
+            if (userAlias.length() == 0) {
+                throw new IllegalArgumentException("Alias cannot be empty.");
+            }
+            if (userAlias.charAt(0) != '@') {
+                throw new IllegalArgumentException("Alias must begin with @.");
+            }
+            if (userAlias.length() < 2) {
+                throw new IllegalArgumentException("Alias must contain 1 or more characters after the @.");
+            }
+            if (password.length() == 0) {
+                throw new IllegalArgumentException("Password cannot be empty.");
+            }
 
-        // Intentionally, Use the java Base64 encoder so it is compatible with M4.
-        String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
+            if (imageToUpload.getDrawable() == null) {
+                throw new IllegalArgumentException("Profile image must be uploaded.");
+            }
 
-        view.toggleRegisterToast(true);
-        userService.registerTask(firstName, lastName, userAlias, password, imageBytesBase64, new RegisterObserver());
+            registerView.setErrorMessage(null);
+            // Convert image to byte array.
+            Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            image.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+            byte[] imageBytes = bos.toByteArray();
+
+            // Intentionally, Use the java Base64 encoder so it is compatible with M4.
+            String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
+
+            registerView.toggleRegisterToast(true);
+            userService.registerTask(firstName, lastName, userAlias, password, imageBytesBase64, new RegisterUserServiceObserver());
+        } catch (Exception e) {
+            registerView.setErrorMessage(e.getMessage());
+        }
     }
 
-    public class RegisterObserver implements UserService.Observer {
+    public class RegisterUserServiceObserver implements UserService.UserServiceObserver {
 
         @Override
         public void startActivity(User user) {
-            view.startActivity(user);
+            registerView.startActivity(user);
         }
 
         @Override
-        public void toggleLoginToast(boolean isActive) {
-
+        public void displaySuccess(String message) {
+            registerView.displayMessage("Hello " + message);
         }
 
         @Override
-        public void displayLoginSuccess(String message) {
-            view.displayMessage("Hello " + message);
-        }
-
-        @Override
-        public void displayLoginError(String message) {
-            view.displayMessage("Failed to register: " + message);
+        public void displayError(String message) {
+            registerView.displayMessage("Failed to register: " + message);
         }
 
         @Override
         public void displayException(Exception ex) {
-            view.displayMessage("Failed to register because of exception: " + ex.getMessage());
+            registerView.displayMessage("Failed to register because of exception: " + ex.getMessage());
         }
 
         @Override
-        public void toggleRegisterToast(boolean isActive) {
-            view.toggleRegisterToast(isActive);
+        public void toggleToast(boolean isActive) {
+            registerView.toggleRegisterToast(isActive);
         }
     }
 }

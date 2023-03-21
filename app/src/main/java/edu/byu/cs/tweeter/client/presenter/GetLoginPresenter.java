@@ -1,19 +1,11 @@
 package edu.byu.cs.tweeter.client.presenter;
 
-import android.content.Intent;
-import android.widget.Toast;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import edu.byu.cs.tweeter.client.model.service.UserService;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LoginTask;
-import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class GetLoginPresenter {
 
-    public interface View {
+    public interface LoginView {
 
         void startActivity(User loggedInUser);
 
@@ -26,10 +18,10 @@ public class GetLoginPresenter {
 
     private UserService userService;
 
-    private View view;
+    private LoginView loginView;
 
-    public GetLoginPresenter(View view) {
-        this.view = view;
+    public GetLoginPresenter(LoginView loginView) {
+        this.loginView = loginView;
         userService = new UserService();
     }
 
@@ -44,44 +36,39 @@ public class GetLoginPresenter {
             if (userPassword.length() == 0) {
                 throw new IllegalArgumentException("Password cannot be empty.");
             }
-            view.setErrorMessage(null);
-            view.toggleLoginToast(true);
-            userService.loginTask(userAlias, userPassword, new LoginObserver());
+            loginView.setErrorMessage(null);
+            loginView.toggleLoginToast(true);
+            userService.loginTask(userAlias, userPassword, new LoginUserServiceObserver());
         } catch (Exception e) {
-            view.setErrorMessage(e.getMessage());
+            loginView.setErrorMessage(e.getMessage());
         }
     }
 
-    public class LoginObserver implements UserService.Observer {
+    public class LoginUserServiceObserver implements UserService.UserServiceObserver {
 
         @Override
         public void startActivity(User user) {
-            view.startActivity(user);
+            loginView.startActivity(user);
         }
 
         @Override
-        public void toggleLoginToast(boolean isActive) {
-            view.toggleLoginToast(isActive);
+        public void displaySuccess(String message) {
+            loginView.displayMessage("Hello " + message);
         }
 
         @Override
-        public void displayLoginSuccess(String message) {
-            view.displayMessage("Hello " + message);
-        }
-
-        @Override
-        public void displayLoginError(String message) {
-            view.displayMessage("Failed to login: " + message);
+        public void displayError(String message) {
+            loginView.displayMessage("Failed to login: " + message);
         }
 
         @Override
         public void displayException(Exception ex) {
-            view.displayMessage("Failed to login because of exception: " + ex.getMessage());
+            loginView.displayMessage("Failed to login because of exception: " + ex.getMessage());
         }
 
         @Override
-        public void toggleRegisterToast(boolean isActive) {
-
+        public void toggleToast(boolean isActive) {
+            loginView.toggleLoginToast(isActive);
         }
     }
 }

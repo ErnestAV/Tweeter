@@ -1,10 +1,8 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -16,28 +14,25 @@ import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LoginTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.RegisterTask;
 import edu.byu.cs.tweeter.client.presenter.GetLoginPresenter;
 import edu.byu.cs.tweeter.client.presenter.GetRegisterPresenter;
-import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
 
 public class UserService {
 
-    public interface Observer {
+    public interface UserServiceObserver {
 
         void startActivity(User user);
 
-        void toggleLoginToast(boolean isActive);
+        void displaySuccess(String message);
 
-        void displayLoginSuccess(String message);
-
-        void displayLoginError(String message);
+        void displayError(String message);
 
         void displayException(Exception ex);
 
-        void toggleRegisterToast(boolean isActive);
+        void toggleToast(boolean isActive);
     }
 
-    public void loginTask(String userAlias, String userPassword, GetLoginPresenter.LoginObserver loginObserver) {
+    public void loginTask(String userAlias, String userPassword, GetLoginPresenter.LoginUserServiceObserver loginObserver) {
         // Send the login request.
         LoginTask loginTask = new LoginTask(userAlias,userPassword,
                 new LoginHandler(loginObserver));
@@ -45,7 +40,7 @@ public class UserService {
         executor.execute(loginTask);
     }
 
-    public void registerTask(String firstName, String lastName, String userAlias, String password, String imageBytesBase64, GetRegisterPresenter.RegisterObserver registerObserver) {
+    public void registerTask(String firstName, String lastName, String userAlias, String password, String imageBytesBase64, GetRegisterPresenter.RegisterUserServiceObserver registerObserver) {
         // Send register request.
         RegisterTask registerTask = new RegisterTask(firstName, lastName, userAlias, password,
                 imageBytesBase64, new RegisterHandler(registerObserver));
@@ -58,10 +53,10 @@ public class UserService {
      */
     private class LoginHandler extends Handler {
 
-        Observer observer;
-        public LoginHandler(Observer observer) {
+        UserServiceObserver userServiceObserver;
+        public LoginHandler(UserServiceObserver userServiceObserver) {
             super(Looper.getMainLooper());
-            this.observer = observer;
+            this.userServiceObserver = userServiceObserver;
         }
 
         @Override
@@ -75,15 +70,15 @@ public class UserService {
                 Cache.getInstance().setCurrUser(loggedInUser);
                 Cache.getInstance().setCurrUserAuthToken(authToken);
 
-                observer.startActivity(loggedInUser);
-                observer.toggleLoginToast(false);
-                observer.displayLoginSuccess(Cache.getInstance().getCurrUser().getName());
+                userServiceObserver.startActivity(loggedInUser);
+                userServiceObserver.toggleToast(false);
+                userServiceObserver.displaySuccess(Cache.getInstance().getCurrUser().getName());
             } else if (msg.getData().containsKey(LoginTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(LoginTask.MESSAGE_KEY);
-                observer.displayLoginError(message);
+                userServiceObserver.displayError(message);
             } else if (msg.getData().containsKey(LoginTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(LoginTask.EXCEPTION_KEY);
-                observer.displayException(ex);
+                userServiceObserver.displayException(ex);
             }
         }
     }
@@ -92,10 +87,10 @@ public class UserService {
 
     private class RegisterHandler extends Handler {
 
-        Observer observer;
-        public RegisterHandler(Observer observer) {
+        UserServiceObserver userServiceObserver;
+        public RegisterHandler(UserServiceObserver userServiceObserver) {
             super(Looper.getMainLooper());
-            this.observer = observer;
+            this.userServiceObserver = userServiceObserver;
         }
 
         @Override
@@ -110,18 +105,18 @@ public class UserService {
                 Cache.getInstance().setCurrUserAuthToken(authToken);
 
                 try {
-                    observer.startActivity(registeredUser);
-                    observer.toggleRegisterToast(false);
-                    observer.displayLoginSuccess(Cache.getInstance().getCurrUser().getName());
+                    userServiceObserver.startActivity(registeredUser);
+                    userServiceObserver.toggleToast(false);
+                    userServiceObserver.displaySuccess(Cache.getInstance().getCurrUser().getName());
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
             } else if (msg.getData().containsKey(RegisterTask.MESSAGE_KEY)) {
                 String message = msg.getData().getString(RegisterTask.MESSAGE_KEY);
-                observer.displayLoginError(message);
+                userServiceObserver.displayError(message);
             } else if (msg.getData().containsKey(RegisterTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(RegisterTask.EXCEPTION_KEY);
-                observer.displayException(ex);
+                userServiceObserver.displayException(ex);
             }
         }
     }

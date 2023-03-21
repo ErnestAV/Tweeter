@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="edu.byu.cs.tweeter.client.view.main.following.FollowingFragment">
+    tools:context="edu.byu.cs.tweeter.client.loginView.main.following.FollowingFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/followingRecyclerView"
