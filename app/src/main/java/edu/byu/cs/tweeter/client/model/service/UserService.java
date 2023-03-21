@@ -11,8 +11,10 @@ import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LoginTask;
+import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LogoutTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.RegisterTask;
 import edu.byu.cs.tweeter.client.presenter.GetLoginPresenter;
+import edu.byu.cs.tweeter.client.presenter.GetMainPresenter;
 import edu.byu.cs.tweeter.client.presenter.GetRegisterPresenter;
 import edu.byu.cs.tweeter.model.domain.AuthToken;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -46,6 +48,12 @@ public class UserService {
                 imageBytesBase64, new RegisterHandler(registerObserver));
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(registerTask);
+    }
+
+    public void logoutTask(GetMainPresenter.LogoutObserver logoutObserver) {
+        LogoutTask logoutTask = new LogoutTask(Cache.getInstance().getCurrUserAuthToken(), new LogoutHandler(logoutObserver));
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        executor.execute(logoutTask);
     }
 
     /**
@@ -117,6 +125,31 @@ public class UserService {
             } else if (msg.getData().containsKey(RegisterTask.EXCEPTION_KEY)) {
                 Exception ex = (Exception) msg.getData().getSerializable(RegisterTask.EXCEPTION_KEY);
                 userServiceObserver.displayException(ex);
+            }
+        }
+    }
+
+    // LogoutHandler
+
+    private class LogoutHandler extends Handler {
+
+        UserServiceObserver observer;
+        public LogoutHandler(UserServiceObserver observer) {
+            super(Looper.getMainLooper());
+            this.observer = observer;
+        }
+
+        @Override
+        public void handleMessage(@NonNull Message msg) {
+            boolean success = msg.getData().getBoolean(LogoutTask.SUCCESS_KEY);
+            if (success) {
+                observer.toggleToast(false);
+            } else if (msg.getData().containsKey(LogoutTask.MESSAGE_KEY)) {
+                String message = msg.getData().getString(LogoutTask.MESSAGE_KEY);
+                observer.displayError(message);
+            } else if (msg.getData().containsKey(LogoutTask.EXCEPTION_KEY)) {
+                Exception ex = (Exception) msg.getData().getSerializable(LogoutTask.EXCEPTION_KEY);
+                observer.displayException(ex);
             }
         }
     }

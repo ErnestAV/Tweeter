@@ -74,12 +74,6 @@ public class FollowService {
         executor.execute(unfollowTask);
     }
 
-    public void logoutTask(Observer observer) {
-        LogoutTask logoutTask = new LogoutTask(Cache.getInstance().getCurrUserAuthToken(), new LogoutHandler(observer));
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(logoutTask);
-    }
-
     public void followersCountTask(User selectedUser, ExecutorService executor, Observer observer) {
         // Get count of most recently selected user's followers.
         GetFollowersCountTask followersCountTask = new GetFollowersCountTask(Cache.getInstance().getCurrUserAuthToken(),
@@ -258,31 +252,6 @@ public class FollowService {
             }
 
             observer.enableFollowButton(true);
-        }
-    }
-
-    // LogoutHandler
-
-    private class LogoutHandler extends Handler {
-
-        Observer observer;
-        public LogoutHandler(Observer observer) {
-            super(Looper.getMainLooper());
-            this.observer = observer;
-        }
-
-        @Override
-        public void handleMessage(@NonNull Message msg) {
-            boolean success = msg.getData().getBoolean(LogoutTask.SUCCESS_KEY);
-            if (success) {
-                observer.toggleLogoutToast(false);
-            } else if (msg.getData().containsKey(LogoutTask.MESSAGE_KEY)) {
-                String message = msg.getData().getString(LogoutTask.MESSAGE_KEY);
-                observer.displayError("Failed to logout: " + message);
-            } else if (msg.getData().containsKey(LogoutTask.EXCEPTION_KEY)) {
-                Exception ex = (Exception) msg.getData().getSerializable(LogoutTask.EXCEPTION_KEY);
-                observer.displayException(ex);
-            }
         }
     }
 

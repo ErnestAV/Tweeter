@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 
 import edu.byu.cs.tweeter.client.model.service.FollowService;
 import edu.byu.cs.tweeter.client.model.service.StatusService;
+import edu.byu.cs.tweeter.client.model.service.UserService;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
@@ -33,13 +34,15 @@ public class GetMainPresenter {
 
     private MainView view;
     private FollowService followService;
-
     private StatusService statusService;
+
+    private UserService userService;
 
     public GetMainPresenter(MainView view) {
         this.view = view;
         followService = new FollowService();
         statusService = new StatusService();
+        userService = new UserService();
     }
 
     public void isFollowerTask(User user, User selectedUser) {
@@ -52,7 +55,7 @@ public class GetMainPresenter {
     }
 
     public void logoutTask() {
-        followService.logoutTask(new LogoutObserver());
+        userService.logoutTask(new LogoutObserver());
         view.toggleLogoutToast(true);
     }
 
@@ -199,11 +202,11 @@ public class GetMainPresenter {
         }
     }
 
-    public class LogoutObserver implements FollowService.Observer {
+    public class LogoutObserver implements UserService.UserServiceObserver {
 
         @Override
         public void displayError(String message) {
-            view.displayMessage(message);
+            view.displayMessage("Failed to logout: " + message);
         }
 
         @Override
@@ -212,13 +215,8 @@ public class GetMainPresenter {
         }
 
         @Override
-        public void addFollowees(List<User> followees, boolean hasMorePages) {
-            // Empty
-        }
-
-        @Override
-        public void addFollowers(List<User> followers, boolean hasMorePages) {
-            // Empty
+        public void toggleToast(boolean isActive) {
+            view.toggleLogoutToast(isActive);
         }
 
         @Override
@@ -227,39 +225,11 @@ public class GetMainPresenter {
         }
 
         @Override
-        public void displayFollowingButton() {
+        public void displaySuccess(String message) {
             // Empty
         }
 
-        @Override
-        public void displayFollowButton() {
-            // Empty
-        }
 
-        @Override
-        public void updateUserFollowingAndFollowersAndButton(boolean b) {
-            // Empty
-        }
-
-        @Override
-        public void enableFollowButton(boolean value) {
-            // Empty
-        }
-
-        @Override
-        public void toggleLogoutToast(boolean value) {
-            view.toggleLogoutToast(value);
-        }
-
-        @Override
-        public void setFollowersCount(int count) {
-            // Empty
-        }
-
-        @Override
-        public void setFolloweesCount(int count) {
-            // Empty
-        }
     }
 
     public class GetFollowerCountObserver implements FollowService.Observer {
