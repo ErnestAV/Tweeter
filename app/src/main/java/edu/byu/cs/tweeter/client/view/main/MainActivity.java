@@ -290,8 +290,8 @@ public class MainActivity extends AppCompatActivity implements StatusDialogFragm
 
     @Override
     public void toggleLogoutToast(boolean isActive) {
+        logOutToast = Toast.makeText(this, "Logging Out...", Toast.LENGTH_LONG);
         if (isActive) {
-            logOutToast = Toast.makeText(this, "Logging Out...", Toast.LENGTH_LONG);
             logOutToast.show();
         } else {
             logOutToast.cancel();
