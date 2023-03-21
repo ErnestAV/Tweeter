@@ -12,7 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="edu.byu.cs.tweeter.client.loginView.login.LoginActivity"
+            android:name="edu.byu.cs.tweeter.client.view.login.LoginActivity"
             android:label="@string/title_activity_login"
             android:theme="@style/AppTheme.NoActionBar"
             android:exported="true">
@@ -22,7 +22,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="edu.byu.cs.tweeter.client.loginView.main.MainActivity"
+            android:name="edu.byu.cs.tweeter.client.view.main.MainActivity"
             android:label="@string/title_activity_main" />
     </application>
 
