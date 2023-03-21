@@ -1,10 +1,8 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -17,11 +15,6 @@ import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFeedTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetStoryTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetUserTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.PostStatusTask;
-import edu.byu.cs.tweeter.client.presenter.GetFeedPresenter;
-import edu.byu.cs.tweeter.client.presenter.GetMainPresenter;
-import edu.byu.cs.tweeter.client.presenter.GetStoryPresenter;
-import edu.byu.cs.tweeter.client.view.main.MainActivity;
-import edu.byu.cs.tweeter.client.view.main.story.StoryFragment;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
 
@@ -112,7 +105,7 @@ public class StatusService {
         public void handleMessage(@NonNull Message msg) {
             boolean success = msg.getData().getBoolean(GetFeedTask.SUCCESS_KEY);
             if (success) {
-                List<Status> statuses = (List<Status>) msg.getData().getSerializable(GetFeedTask.STATUSES_KEY);
+                List<Status> statuses = (List<Status>) msg.getData().getSerializable(GetFeedTask.ITEMS_KEY);
                 boolean hasMorePages = msg.getData().getBoolean(GetFeedTask.MORE_PAGES_KEY);
                 observer.addStatuses(statuses, hasMorePages);
             } else if (msg.getData().containsKey(GetFeedTask.MESSAGE_KEY)) {
@@ -141,7 +134,7 @@ public class StatusService {
         public void handleMessage(@NonNull Message msg) {
             boolean success = msg.getData().getBoolean(GetStoryTask.SUCCESS_KEY);
             if (success) {
-                List<Status> statuses = (List<Status>) msg.getData().getSerializable(GetStoryTask.STATUSES_KEY);
+                List<Status> statuses = (List<Status>) msg.getData().getSerializable(GetStoryTask.ITEMS_KEY);
                 boolean hasMorePages = msg.getData().getBoolean(GetStoryTask.MORE_PAGES_KEY);
                 observer.addStatuses(statuses, hasMorePages);
             } else if (msg.getData().containsKey(GetStoryTask.MESSAGE_KEY)) {

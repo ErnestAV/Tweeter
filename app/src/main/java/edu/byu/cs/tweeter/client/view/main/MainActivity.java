@@ -2,9 +2,6 @@ package edu.byu.cs.tweeter.client.view.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -15,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager.widget.ViewPager;
 
@@ -33,13 +29,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import edu.byu.cs.tweeter.R;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.FollowTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFollowersCountTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFollowingCountTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.IsFollowerTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.LogoutTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.PostStatusTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.UnfollowTask;
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.presenter.GetMainPresenter;
 import edu.byu.cs.tweeter.client.view.login.LoginActivity;

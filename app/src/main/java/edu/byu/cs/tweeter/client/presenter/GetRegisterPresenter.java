@@ -54,7 +54,6 @@ public class GetRegisterPresenter {
                 throw new IllegalArgumentException("Profile image must be uploaded.");
             }
 
-            registerView.setErrorMessage(null);
             // Convert image to byte array.
             Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -64,6 +63,7 @@ public class GetRegisterPresenter {
             // Intentionally, Use the java Base64 encoder so it is compatible with M4.
             String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
 
+            registerView.setErrorMessage(null);
             registerView.toggleRegisterToast(true);
             userService.registerTask(firstName, lastName, userAlias, password, imageBytesBase64, new RegisterUserServiceObserver());
         } catch (Exception e) {
