@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.client.view.main.story;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.R;
 import edu.byu.cs.tweeter.client.presenter.GetStoryPresenter;
+import edu.byu.cs.tweeter.client.presenter.view.PagedView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -39,13 +41,15 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the "Story" tab.
  */
-public class StoryFragment extends Fragment implements GetStoryPresenter.View {
+public class StoryFragment extends Fragment implements PagedView<Status> {
     private static final String LOG_TAG = "StoryFragment";
     private static final String USER_KEY = "UserKey";
 
     private static final int LOADING_DATA_VIEW = 0;
     private static final int ITEM_VIEW = 1;
     private User user;
+
+    private Toast toast;
 
     private StoryRecyclerViewAdapter storyRecyclerViewAdapter;
 
@@ -103,20 +107,35 @@ public class StoryFragment extends Fragment implements GetStoryPresenter.View {
     }
 
     @Override
-    public void displayMessage(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    public void addItems(List<Status> items) {
+        storyRecyclerViewAdapter.addItems(items);
     }
 
     @Override
-    public void addMoreItems(List<Status> statuses) {
-        storyRecyclerViewAdapter.addItems(statuses);
-    }
-
-    @Override
-    public void startActivity(User user) {
+    public void navigateToUser(User user) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
+    }
+
+    @Override
+    public void navigateToURL(String clickableURL) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickableURL));
+        startActivity(intent);
+    }
+
+    @Override
+    public void displayMessage(String message) {
+        toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    @Override
+    public void clearMessage() {
+        if (toast != null) {
+            toast.cancel();
+            toast = null;
+        }
     }
 
     /**
@@ -147,7 +166,7 @@ public class StoryFragment extends Fragment implements GetStoryPresenter.View {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    presenter.getUserTask(userAlias.getText().toString());
+                    presenter.getUser(userAlias.getText().toString());
                 }
             });
         }
@@ -178,7 +197,7 @@ public class StoryFragment extends Fragment implements GetStoryPresenter.View {
 
                         String clickableUser = s.subSequence(start, end).toString();
 
-                        presenter.getUserTask(clickableUser);
+                        presenter.clickedMention(clickableUser);
                     }
 
                     @Override

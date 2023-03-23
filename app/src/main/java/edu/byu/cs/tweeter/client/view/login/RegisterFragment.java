@@ -2,6 +2,8 @@ package edu.byu.cs.tweeter.client.view.login;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -16,6 +18,9 @@ import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 
+import java.io.ByteArrayOutputStream;
+import java.util.Base64;
+
 import edu.byu.cs.tweeter.R;
 import edu.byu.cs.tweeter.client.presenter.GetRegisterPresenter;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
@@ -24,7 +29,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the register screen.
  */
-public class RegisterFragment extends Fragment implements GetRegisterPresenter.RegisterView {
+public class RegisterFragment extends Fragment implements GetRegisterPresenter.View {
     private static final String LOG_TAG = "RegisterFragment";
     private static final int RESULT_IMAGE = 10;
 
@@ -37,7 +42,6 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
     private ImageView imageToUpload;
     private TextView errorView;
     private Toast registeringToast;
-
     private GetRegisterPresenter presenter;
 
     /**
@@ -77,8 +81,18 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                // Convert image to byte array.
+                Bitmap image = ((BitmapDrawable) imageToUpload.getDrawable()).getBitmap();
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                image.compress(Bitmap.CompressFormat.JPEG, 100, bos);
+                byte[] imageBytes = bos.toByteArray();
+
+                // Intentionally, Use the java Base64 encoder so it is compatible with M4.
+                String imageBytesBase64 = Base64.getEncoder().encodeToString(imageBytes);
+
                 // Register and move to MainActivity.
-                presenter.registerTask(firstName.getText().toString(), lastName.getText().toString(), alias.getText().toString(), password.getText().toString(), imageToUpload);
+                presenter.registerTask(firstName.getText().toString(), lastName.getText().toString(), alias.getText().toString(), password.getText().toString(), imageBytesBase64);
             }
         });
 
@@ -98,29 +112,34 @@ public class RegisterFragment extends Fragment implements GetRegisterPresenter.R
     }
 
     @Override
-    public void startActivity(User registeredUser) {
+    public void displayErrorMessage(String message) {
+        errorView.setText(message);
+    }
+
+    @Override
+    public void clearErrorMessage() {
+        errorView.setText(null);
+    }
+
+    @Override
+    public void navigateToUser(User user) {
         Intent intent = new Intent(getContext(), MainActivity.class);
-        intent.putExtra(MainActivity.CURRENT_USER_KEY, registeredUser);
+        intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
     }
 
     @Override
-    public void toggleRegisterToast(boolean isActive) {
-        registeringToast = Toast.makeText(getContext(), "Registering...", Toast.LENGTH_LONG);
-        if (isActive) {
-            registeringToast.show();
-        } else {
-            registeringToast.cancel();
-        }
-    }
-
-    @Override
     public void displayMessage(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        clearMessage();
+        registeringToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        registeringToast.show();
     }
 
     @Override
-    public void setErrorMessage(String message) {
-        errorView.setText(message);
+    public void clearMessage() {
+        if (registeringToast != null) {
+            registeringToast.cancel();
+            registeringToast = null;
+        }
     }
 }

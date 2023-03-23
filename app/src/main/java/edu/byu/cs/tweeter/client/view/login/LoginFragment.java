@@ -20,14 +20,13 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the login screen.
  */
-public class LoginFragment extends Fragment implements GetLoginPresenter.LoginView {
+public class LoginFragment extends Fragment implements GetLoginPresenter.View {
     private static final String LOG_TAG = "LoginFragment";
 
     private Toast loginToast;
     private EditText alias;
     private EditText password;
     private TextView errorView;
-
     private GetLoginPresenter presenter;
 
     /**
@@ -64,29 +63,34 @@ public class LoginFragment extends Fragment implements GetLoginPresenter.LoginVi
     }
 
     @Override
-    public void startActivity(User loggedInUser) {
+    public void displayErrorMessage(String message) {
+        errorView.setText(message);
+    }
+
+    @Override
+    public void clearErrorMessage() {
+        errorView.setText(null);
+    }
+
+    @Override
+    public void navigateToUser(User user) {
         Intent intent = new Intent(getContext(), MainActivity.class);
-        intent.putExtra(MainActivity.CURRENT_USER_KEY, loggedInUser);
+        intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
     }
 
     @Override
-    public void toggleLoginToast(boolean isActive) {
-        loginToast = Toast.makeText(getContext(), "Logging In...", Toast.LENGTH_LONG);
-        if (isActive) {
-            loginToast.show();
-        } else {
-            loginToast.cancel();
-        }
-    }
-
-    @Override
     public void displayMessage(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+        clearMessage();
+        loginToast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        loginToast.show();
     }
 
     @Override
-    public void setErrorMessage(String message) {
-        errorView.setText(message);
+    public void clearMessage() {
+        if (loginToast != null) {
+            loginToast.cancel();
+            loginToast = null;
+        }
     }
 }

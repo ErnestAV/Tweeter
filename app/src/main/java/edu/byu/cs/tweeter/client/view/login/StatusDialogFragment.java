@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatDialogFragment;
 
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
 import java.util.Locale;
 
 import edu.byu.cs.tweeter.R;
@@ -51,7 +52,11 @@ public class StatusDialogFragment extends AppCompatDialogFragment {
                 .setPositiveButton("POST STATUS", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        observer.onStatusPosted(post.getText().toString());
+                        try {
+                            observer.onStatusPosted(post.getText().toString());
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 });
 
@@ -100,7 +105,7 @@ public class StatusDialogFragment extends AppCompatDialogFragment {
     }
 
     public interface Observer {
-        void onStatusPosted(String post);
+        void onStatusPosted(String post) throws ParseException;
     }
 
 }

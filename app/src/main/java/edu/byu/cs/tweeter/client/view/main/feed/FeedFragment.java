@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.client.view.main.feed;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,6 +33,7 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.R;
 import edu.byu.cs.tweeter.client.presenter.GetFeedPresenter;
+import edu.byu.cs.tweeter.client.presenter.view.PagedView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.Status;
 import edu.byu.cs.tweeter.model.domain.User;
@@ -39,7 +41,7 @@ import edu.byu.cs.tweeter.model.domain.User;
 /**
  * Implements the "Feed" tab.
  */
-public class FeedFragment extends Fragment implements GetFeedPresenter.View {
+public class FeedFragment extends Fragment implements PagedView<Status> {
     private static final String LOG_TAG = "FeedFragment";
     private static final String USER_KEY = "UserKey";
 
@@ -47,6 +49,7 @@ public class FeedFragment extends Fragment implements GetFeedPresenter.View {
     private static final int ITEM_VIEW = 1;
 
     private User user;
+    private Toast toast;
 
     private FeedRecyclerViewAdapter feedRecyclerViewAdapter;
 
@@ -104,20 +107,35 @@ public class FeedFragment extends Fragment implements GetFeedPresenter.View {
     }
 
     @Override
-    public void displayMessage(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    public void addItems(List<Status> items) {
+        feedRecyclerViewAdapter.addItems(items);
     }
 
     @Override
-    public void startActivity(User user) {
+    public void navigateToUser(User user) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
     }
 
     @Override
-    public void addMoreItems(List<Status> statuses) {
-        feedRecyclerViewAdapter.addItems(statuses);
+    public void navigateToURL(String clickableURL) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickableURL));
+        startActivity(intent);
+    }
+
+    @Override
+    public void displayMessage(String message) {
+        toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    @Override
+    public void clearMessage() {
+        if (toast != null) {
+            toast.cancel();
+            toast = null;
+        }
     }
 
     /**
@@ -148,7 +166,7 @@ public class FeedFragment extends Fragment implements GetFeedPresenter.View {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) { // TODO: Take out of here - Done
-                    presenter.getUserTask(userAlias.getText().toString());
+                    presenter.getUser(userAlias.getText().toString());
                 }
             });
         }
@@ -177,9 +195,9 @@ public class FeedFragment extends Fragment implements GetFeedPresenter.View {
                         int start = s.getSpanStart(this);
                         int end = s.getSpanEnd(this);
 
-                        String clickableUser = s.subSequence(start, end).toString();
+                        String clickable = s.subSequence(start, end).toString();
 
-                        presenter.getUserTask(clickableUser);
+                        presenter.clickedMention(clickable);
                     }
 
                     @Override

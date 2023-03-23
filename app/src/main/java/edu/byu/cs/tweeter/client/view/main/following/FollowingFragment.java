@@ -1,6 +1,7 @@
 package edu.byu.cs.tweeter.client.view.main.following;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -26,13 +27,14 @@ import java.util.List;
 
 import edu.byu.cs.tweeter.R;
 import edu.byu.cs.tweeter.client.presenter.GetFollowingPresenter;
+import edu.byu.cs.tweeter.client.presenter.view.PagedView;
 import edu.byu.cs.tweeter.client.view.main.MainActivity;
 import edu.byu.cs.tweeter.model.domain.User;
 
 /**
  * Implements the "Following" tab.
  */
-public class FollowingFragment extends Fragment implements GetFollowingPresenter.View {
+public class FollowingFragment extends Fragment implements PagedView<User> {
 
     private static final String LOG_TAG = "FollowingFragment";
     private static final String USER_KEY = "UserKey";
@@ -41,6 +43,8 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
     private static final int ITEM_VIEW = 1;
 
     private User user;
+
+    private Toast toast;
 
     private FollowingRecyclerViewAdapter followingRecyclerViewAdapter;
 
@@ -96,21 +100,37 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
     }
 
     @Override
-    public void displayMessage(String message) {
-        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+    public void addItems(List<User> items) {
+        followingRecyclerViewAdapter.addItems(items);
     }
 
     @Override
-    public void addMoreItems(List<User> followees) {
-        followingRecyclerViewAdapter.addItems(followees);
-    }
-
-    @Override
-    public void startActivity(User user) {
+    public void navigateToUser(User user) {
         Intent intent = new Intent(getContext(), MainActivity.class);
         intent.putExtra(MainActivity.CURRENT_USER_KEY, user);
         startActivity(intent);
     }
+
+    @Override
+    public void navigateToURL(String clickableURL) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(clickableURL));
+        startActivity(intent);
+    }
+
+    @Override
+    public void displayMessage(String message) {
+        toast = Toast.makeText(getContext(), message, Toast.LENGTH_LONG);
+        toast.show();
+    }
+
+    @Override
+    public void clearMessage() {
+        if (toast != null) {
+            toast.cancel();
+            toast = null;
+        }
+    }
+
 
     /**
      * The ViewHolder for the RecyclerView that displays the Following data.
@@ -136,7 +156,7 @@ public class FollowingFragment extends Fragment implements GetFollowingPresenter
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) { // TODO: THIS IS A BACKGROUND THREAD -- REMOVE IT LATER - GET USER TASK -DONE
-                    presenter.getUserTask(userAlias.getText().toString());
+                    presenter.getUser(userAlias.getText().toString());
                 }
             });
         }
