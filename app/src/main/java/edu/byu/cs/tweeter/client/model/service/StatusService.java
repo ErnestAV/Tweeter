@@ -1,19 +1,8 @@
 package edu.byu.cs.tweeter.client.model.service;
 
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
-
-import androidx.annotation.NonNull;
-
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import edu.byu.cs.tweeter.client.cache.Cache;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetFeedTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetStoryTask;
-import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetUserTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.PostStatusTask;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.handler.NotificationHandler;
 import edu.byu.cs.tweeter.client.model.service.backgroundTasks.handler.PageHandler;

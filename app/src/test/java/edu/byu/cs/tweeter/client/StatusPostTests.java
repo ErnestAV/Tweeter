@@ -12,7 +12,7 @@ import edu.byu.cs.tweeter.client.model.service.StatusService;
 import edu.byu.cs.tweeter.client.presenter.GetMainPresenter;
 import edu.byu.cs.tweeter.model.domain.Status;
 
-public class PostStatusWorkingTest {
+public class StatusPostTests {
     StatusService mockStatusService;
     Status mockStatus;
     GetMainPresenter.View mockView;
@@ -36,7 +36,8 @@ public class PostStatusWorkingTest {
             return null;
         };
 
-        Mockito.doAnswer(result).when(mockStatusService).getStatusTask(Mockito.any(), Mockito.any());
+        // Making sure parameters passed in are the right ones
+        Mockito.doAnswer(result).when(mockStatusService).getStatusTask(Mockito.isA(Status.class), Mockito.isA(GetMainPresenter.PostStatusObserver.class));
         spyPresenter.getStatusPostedTask("test post");
 
         Mockito.verify(mockView).displayMessage("Posting Status...");
@@ -52,7 +53,8 @@ public class PostStatusWorkingTest {
             return null;
         };
 
-        Mockito.doAnswer(result).when(mockStatusService).getStatusTask(Mockito.any(), Mockito.any());
+        // Making sure parameters passed in are the right ones
+        Mockito.doAnswer(result).when(mockStatusService).getStatusTask(Mockito.isA(Status.class), Mockito.isA(GetMainPresenter.PostStatusObserver.class));
         spyPresenter.getStatusPostedTask("test post");
 
         Mockito.verify(mockView).displayMessage("Posting Status...");
@@ -60,16 +62,15 @@ public class PostStatusWorkingTest {
     }
 
     @Test
-    public void TestExceptionPost() throws ParseException {
+    public void TestFailureDueToExceptionPost() throws ParseException {
         Answer<Void> result = invocation -> {
             GetMainPresenter.PostStatusObserver observer = invocation.getArgument(1, GetMainPresenter.PostStatusObserver.class);
             observer.handleException(new Exception("Failed to post status because of exception: <EXCEPTION MESSAGE>"));
             return null;
         };
 
-        // Assert that parameters are correct
+        // Making sure parameters passed in are the right ones
         Mockito.doAnswer(result).when(mockStatusService).getStatusTask(Mockito.isA(Status.class), Mockito.isA(GetMainPresenter.PostStatusObserver.class));
-
         spyPresenter.getStatusPostedTask("test post");
 
         Mockito.verify(mockView).displayMessage("Posting Status...");

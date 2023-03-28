@@ -7,7 +7,6 @@ import edu.byu.cs.tweeter.client.model.service.observer.CountObserver;
 
 public class GetCountHandler extends BackgroundTaskHandler<CountObserver> {
 
-
     public GetCountHandler(CountObserver observer) {
         super(observer);
     }

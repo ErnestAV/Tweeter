@@ -7,7 +7,7 @@ import edu.byu.cs.tweeter.client.model.service.backgroundTasks.GetUserTask;
 import edu.byu.cs.tweeter.model.domain.User;
 
 
-// TODO: Make a GetUserObserver
+// TODO: Make a GetUserObserver - Done
 public class GetUserHandler extends BackgroundTaskHandler<UserService.GetUserObserver> {
     public GetUserHandler(UserService.GetUserObserver observer) {
         super(observer);

@@ -38,19 +38,6 @@ public class UserService extends Service {
     public interface RegisterObserver extends LoginRegisterObserver {}
     public interface LogoutObserver extends NotificationObserver {}
 
-//    public interface UserServiceObserver {
-//
-//        void startActivity(User user);
-//
-//        void displaySuccess(String message);
-//
-//        void displayError(String message);
-//
-//        void displayException(Exception ex);
-//
-//        void toggleToast(boolean isActive);
-//    }
-
     public void loginTask(String userAlias, String userPassword, LoginObserver loginObserver) {
         // Send the login request.
         LoginTask loginTask = new LoginTask(userAlias,userPassword, new LoginRegisterHandler(loginObserver));
